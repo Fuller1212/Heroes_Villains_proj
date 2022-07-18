@@ -1,5 +1,8 @@
+from tkinter import CASCADE
 from django.db import models
 from django.forms import CharField
+
+from super_types.models import SuperType
 
 # Create your models here.
 
@@ -8,3 +11,5 @@ class Super(models.Model):
     alter_ego = models.CharField(max_length=255)
     primary_ability = models.CharField(max_length=255)
     second_ability = models.CharField(max_length=255)
+    catchphrase = models.CharField(max_length=255)
+    super_type = models.ForeignKey(SuperType, on_delete=CASCADE)
