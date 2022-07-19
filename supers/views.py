@@ -11,9 +11,23 @@ from django.shortcuts import get_object_or_404
 @api_view(['GET', 'POST'])
 def supers_list(request):
     if request.method == 'GET':
+        heroes = Super.objects.filter(super_type_id = 1)
+        villains = Super.objects.filter(super_type_id = 2)
+        hero_or_villain = request.query_params.get('type')
         supers = Super.objects.all()
-        serializer = SuperSerializer(supers, many=True)
-        return Response(serializer.data)
+        
+        if hero_or_villain:
+            supers = supers.filter(super_type__type = hero_or_villain) 
+            serializer = SuperSerializer(supers, many=True)
+            return Response(serializer.data)
+        else:
+            heroes_serializer = SuperSerializer(heroes, many=True)
+            villains_serializer = SuperSerializer(villains, many=True)
+            custom_response = {
+                'heroes': heroes_serializer.data,
+                'villains': villains_serializer.data
+            }         
+            return Response(custom_response)
 
     elif request.method == 'POST':
         serializer = SuperSerializer(data=request.data)
