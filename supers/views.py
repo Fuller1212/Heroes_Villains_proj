@@ -11,23 +11,23 @@ from django.shortcuts import get_object_or_404
 @api_view(['GET', 'POST'])
 def supers_list(request):
     if request.method == 'GET':
-        heroes = Super.objects.filter(super_type_id = 1)
-        villains = Super.objects.filter(super_type_id = 2)
-        hero_or_villain = request.query_params.get('type')
-        supers = Super.objects.all()
-        
-        if hero_or_villain:
-            supers = supers.filter(super_type__type = hero_or_villain) 
+        type_param = request.query_params.get('type')
+
+        if type_param:
+            if type_param != 'hero' and type_param != 'villain':
+                return Response(f'Error {type_param} is invalid', status=status.HTTP_400_BAD_REQUEST)
+            supers = Super.objects.filter(super_type__type = type_param) 
             serializer = SuperSerializer(supers, many=True)
             return Response(serializer.data)
         else:
+            heroes = Super.objects.filter(super_type__type = 'hero')
+            villains = Super.objects.filter(super_type__type = 'villain')
             heroes_serializer = SuperSerializer(heroes, many=True)
             villains_serializer = SuperSerializer(villains, many=True)
-            custom_response = {
+            return Response({
                 'heroes': heroes_serializer.data,
                 'villains': villains_serializer.data
-            }         
-            return Response(custom_response)
+            })
 
     elif request.method == 'POST':
         serializer = SuperSerializer(data=request.data)
@@ -37,15 +37,15 @@ def supers_list(request):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def supers_detail(request, pk):
-    supers = get_object_or_404(Super, pk=pk)
+    super = get_object_or_404(Super, pk=pk)
     if request.method == 'GET':
-        serializer = SuperSerializer(supers)
+        serializer = SuperSerializer(super)
         return Response(serializer.data)
     elif request.method == 'PUT':
-        serializer = SuperSerializer(supers, data=request.data)
+        serializer = SuperSerializer(super, data=request.data)
         serializer.is_valid(raise_exception = True)
         serializer.save()
         return Response(serializer.data)
     elif request.method == 'DELETE':
-        supers.delete()
+        super.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
